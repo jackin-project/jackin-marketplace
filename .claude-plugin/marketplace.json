@@ -1,0 +1,17 @@
+{
+  "name": "jackin-marketplace",
+  "owner": {
+    "name": "Alexey Zhokhov"
+  },
+  "plugins": [
+    {
+      "name": "jackin-dev",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/donbeave/jackin-dev.git"
+      },
+      "description": "Development workflow skills for the jackin project: release management, validation, and changelog generation",
+      "version": "0.1.0"
+    }
+  ]
+}
