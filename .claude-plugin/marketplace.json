@@ -8,7 +8,7 @@
       "name": "jackin-dev",
       "source": {
         "source": "url",
-        "url": "https://github.com/donbeave/jackin-dev.git"
+        "url": "https://github.com/jackin-project/jackin-dev.git"
       },
       "description": "Development workflow skills for the jackin project: release management, validation, and changelog generation",
       "version": "0.1.0"
