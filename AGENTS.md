@@ -60,7 +60,7 @@ Expect each listed plugin's source repo to have at least a `protect-main` rulese
 ## Conventions
 
 - Branch naming: `chore/*`, `feat/*`, `fix/*`
-- Commit messages follow Conventional Commits
+- Commit messages: see [Commit Messages](#commit-messages) section below
 - `main` is the primary branch
 - All changes go through PR
 
@@ -69,3 +69,31 @@ Expect each listed plugin's source repo to have at least a `protect-main` rulese
 - A plugin source URL pointing to a ruleset-protected repo whose owner later ships a malicious version — the manifest points at a repo, and the repo's maintainers can do anything within it.
 - Claude Code's resolution of bare git URLs to `main` (vs. a pinned tag or commit) — the weaker guarantee lives in the Claude Code client, not here.
 - A compromised owner of this marketplace repo (`jackin-project` org owner) adding a poisoned plugin — mitigated by the self-referential ruleset and PR requirement, but not by this AGENTS.md alone.
+
+## Commit Messages
+
+All commits in this repository MUST follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).
+
+Subject format: `<type>[optional scope][!]: <description>`
+
+Allowed types:
+
+| Type       | Use for                                                |
+| ---------- | ------------------------------------------------------ |
+| `feat`     | New user-visible feature                               |
+| `fix`      | Bug fix                                                |
+| `docs`     | Documentation-only change                              |
+| `style`    | Formatting, whitespace; no logic change                |
+| `refactor` | Internal restructuring; no behavior change             |
+| `perf`     | Performance improvement                                |
+| `test`     | Adding or updating tests                               |
+| `build`    | Build system, tooling, dependencies                    |
+| `ci`       | CI configuration                                       |
+| `chore`    | Routine maintenance (release, merge, deps)             |
+| `revert`   | Reverts a prior commit                                 |
+
+Scope is optional but encouraged when it clarifies the change area.
+
+Breaking changes use `!` after the type/scope (`feat!:` or `feat(api)!:`) and include a `BREAKING CHANGE:` footer in the body.
+
+PR squash-merge: the PR title becomes the commit subject, so PR titles must also follow this convention.
