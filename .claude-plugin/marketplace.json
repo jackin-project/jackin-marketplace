@@ -11,7 +11,7 @@
         "url": "https://github.com/jackin-project/jackin-dev.git"
       },
       "description": "Development workflow skills for the jackin project: release management, validation, and changelog generation",
-      "version": "0.1.0"
+      "version": "0.3.0"
     }
   ]
 }
