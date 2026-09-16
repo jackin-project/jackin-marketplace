@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Alexey Zhokhov
+# SPDX-License-Identifier: Apache-2.0
+
+[settings]
+lockfile = true
+
+[tools]
+python = "3.14.7"
+"pipx:reuse" = { version = "6.2.0", depends = ["python"] }
+
+[tasks.ci]
+run = "reuse lint"
