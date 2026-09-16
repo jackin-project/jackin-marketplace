@@ -1,0 +1,21 @@
+schema = 1
+
+[generator]
+repository = "jackin-project/jackin-marketplace"
+
+[workflow]
+runners = "both"
+automatic = "both"
+default_dispatch_runner = "github"
+automatic_lanes = "github"
+github_runner = "ubuntu-24.04"
+velnor_labels = ["self-hosted", "velnor-target-mvp"]
+default_branch = "main"
+
+[[units]]
+id = "reuse"
+kind = "docs"
+root = "."
+watch = ["REUSE.toml", "LICENSES/**", "mise.toml", "mise.lock"]
+ci_tasks = ["ci"]
+mise_tools = ["python", "pipx:reuse"]
