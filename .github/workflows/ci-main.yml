@@ -10,12 +10,10 @@ on:
       runner:
         description: Execution backend
         required: false
-        default: both
+        default: github
         type: choice
         options:
-          - velnor
           - github
-          - both
       scope:
         description: Verification scope
         required: true
@@ -58,11 +56,11 @@ jobs:
           persist-credentials: false
       - name: Set up Velnor workflow runtime
         if: ${{ runner.environment == 'github-hosted' }}
-        uses: tailrocks/velnor/.github/actions/setup-velnor-workflow@de2ca10f0faf7c5cbb4f1b218daf72486587f224
+        uses: tailrocks/velnor/.github/actions/setup-velnor-workflow@e05aee6de1d1614d752b4d1b1d26a49ac2c5ef91
         with:
-          rev: de2ca10f0faf7c5cbb4f1b218daf72486587f224
+          rev: e05aee6de1d1614d752b4d1b1d26a49ac2c5ef91
       - name: Set trusted workflow policy revision
-        run: echo "VELNOR_WORKFLOW_POLICY_REVISION=de2ca10f0faf7c5cbb4f1b218daf72486587f224" >> "$GITHUB_ENV"
+        run: echo "VELNOR_WORKFLOW_POLICY_REVISION=e05aee6de1d1614d752b4d1b1d26a49ac2c5ef91" >> "$GITHUB_ENV"
       - name: Select affected units
         id: plan
         env:
@@ -70,7 +68,6 @@ jobs:
           CI_SCOPE_OVERRIDE: ${{ github.event.inputs.scope || '' }}
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.inputs.base_sha || github.event.before || 'refs/heads/main' }}
           HEAD_SHA: ${{ github.sha }}
-          VELNOR_LANES: ${{ github.event.inputs.runner || 'both' }}
         run: |
           set -euo pipefail
           if [[ -z "${CI_SCOPE_OVERRIDE:-}" ]]; then unset CI_SCOPE_OVERRIDE; fi
@@ -79,7 +76,7 @@ jobs:
       - name: Prepare Velnor workflow runtime
         shell: bash
         env:
-          EXPECTED_REVISION: de2ca10f0faf7c5cbb4f1b218daf72486587f224
+          EXPECTED_REVISION: e05aee6de1d1614d752b4d1b1d26a49ac2c5ef91
         run: |
           set -euo pipefail
           stage="$RUNNER_TEMP/velnor-workflow-runtime"
@@ -97,19 +94,10 @@ jobs:
       - name: Publish Velnor workflow runtime
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: velnor-workflow-runtime-de2ca10f0faf7c5cbb4f1b218daf72486587f224-${{ runner.os }}-${{ runner.arch }}
+          name: velnor-workflow-runtime-e05aee6de1d1614d752b4d1b1d26a49ac2c5ef91-${{ runner.os }}-${{ runner.arch }}
           path: ${{ runner.temp }}/velnor-workflow-runtime
           if-no-files-found: error
           retention-days: 7
-  velnor-lane-admission:
-    name: "Control / Velnor admission"
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - name: Velnor lane omitted for fork
-        run: |
-          echo '::notice::Velnor lane omitted for fork pull request; validating GitHub lane only.'
   policy:
     name: Policy
     runs-on: ubuntu-24.04
@@ -147,7 +135,7 @@ jobs:
         with:
           backend: github
           version: 1.11.1
-          cache-key: velnor-policy-mbx-1.11.1-${{ runner.os }}-${{ runner.arch }}-de2ca10f0faf7c5cbb4f1b218daf72486587f224
+          cache-key: velnor-policy-mbx-1.11.1-${{ runner.os }}-${{ runner.arch }}-e05aee6de1d1614d752b4d1b1d26a49ac2c5ef91
           restore-keys: |
             velnor-policy-mbx-1.11.1-${{ runner.os }}-${{ runner.arch }}-
       - name: Install pinned Velnor workflow runtime
@@ -167,7 +155,7 @@ jobs:
             cargo install \
             --locked \
             --git https://github.com/tailrocks/velnor \
-            --rev de2ca10f0faf7c5cbb4f1b218daf72486587f224 \
+            --rev e05aee6de1d1614d752b4d1b1d26a49ac2c5ef91 \
             --root "$VELNOR_WORKFLOW_ROOT" \
             velnor-workflow \
             --bin velnor-workflow
@@ -189,7 +177,7 @@ jobs:
           WORKFLOW_ROOT: ${{ github.workspace }}/policy-checkout
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
-          VELNOR_WORKFLOW_POLICY_REVISION: de2ca10f0faf7c5cbb4f1b218daf72486587f224
+          VELNOR_WORKFLOW_POLICY_REVISION: e05aee6de1d1614d752b4d1b1d26a49ac2c5ef91
         run: |
           set -euo pipefail
           velnor-workflow policy \
@@ -218,23 +206,10 @@ jobs:
       full_units: ${{ needs.plan.outputs.full_units }}
       base_sha: ${{ needs.plan.outputs.base_sha }}
       head_sha: ${{ needs.plan.outputs.head_sha }}
-  velnor-reuse:
-    name: "Documentation · "
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',reuse,') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
-    needs: [plan, policy]
-    uses: ./.github/workflows/ci-unit-docs.yml
-    with:
-      unit: reuse
-      lane: velnor
-      selected_units: ${{ needs.plan.outputs.units }}
-      scope: ${{ needs.plan.outputs.scope }}
-      full_units: ${{ needs.plan.outputs.full_units }}
-      base_sha: ${{ needs.plan.outputs.base_sha }}
-      head_sha: ${{ needs.plan.outputs.head_sha }}
   ci-required:
     name: ci-required
     if: ${{ always() }}
-    needs: [plan, velnor-lane-admission, policy, github-reuse, velnor-reuse]
+    needs: [plan, policy, github-reuse]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -259,11 +234,6 @@ jobs:
             echo "required CI prerequisite policy did not pass: $result" >&2
             exit 1
           fi
-          result="$(result_for_job velnor-lane-admission)"
-          case "$result" in
-            success|skipped) ;;
-            *) echo "required CI prerequisite velnor-lane-admission did not pass: $result" >&2; exit 1 ;;
-          esac
           selected=",$SELECTED_UNITS,"
           if [[ "$selected" == *",reuse,"* ]]; then
             result="$(result_for_job github-reuse)"
@@ -276,26 +246,6 @@ jobs:
             case "$result" in
               success|skipped) ;;
               *) echo "unselected CI job github-reuse failed unexpectedly: $result" >&2; exit 1 ;;
-            esac
-          fi
-          if [[ "$selected" == *",reuse,"* ]]; then
-            result="$(result_for_job velnor-reuse)"
-            if [[ "$FORK_PR" == true ]]; then
-              case "$result" in
-                success|skipped) ;;
-                *) echo "selected CI job velnor-reuse did not pass: $result" >&2; exit 1 ;;
-              esac
-            else
-              case "$result" in
-                success) ;;
-                *) echo "selected CI job velnor-reuse did not pass: $result" >&2; exit 1 ;;
-              esac
-            fi
-          else
-            result="$(result_for_job velnor-reuse)"
-            case "$result" in
-              success|skipped) ;;
-              *) echo "unselected CI job velnor-reuse failed unexpectedly: $result" >&2; exit 1 ;;
             esac
           fi
   required:

@@ -1,17 +1,18 @@
 schema = 1
-
 [generator]
 repository = "jackin-project/jackin-marketplace"
-
+revision = "e05aee6de1d1614d752b4d1b1d26a49ac2c5ef91"
+[policy]
+ruleset_required_status_checks = ["ci-required"]
+ruleset_external_status_checks = ["DCO"]
 [workflow]
-runners = "both"
-automatic = "both"
+runners = "github"
+automatic = "github"
 default_dispatch_runner = "github"
 automatic_lanes = "github"
 github_runner = "ubuntu-24.04"
 velnor_labels = ["self-hosted", "velnor-target-mvp"]
 default_branch = "main"
-
 [[units]]
 id = "reuse"
 kind = "docs"
